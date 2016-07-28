@@ -1,30 +1,33 @@
-#Code that does stuff
+# Load and process picarro data
+# Data saved in Flame_ColumbiaRiver dropbox folder from July 2016 campaign
 
-#More code that does other stuff
-library(R.matlab)
-library(gdata)
+# library(R.matlab)
+# library(gdata)
+library(stringr)
 
-setwd("E:/Dropbox/FLAME_ColumbiaRiver/picarro_data")
+#How many seconds was the Picarro clock off the gps clock?
+Picarro_Time_Offset<-15
 
-setwd("matlab")
+#Load Picarro directory and list all files
+setwd("E:/Dropbox/FLAME_ColumbiaRiver")
+dir<-("picarro_data/csv")
+PicarroPath<-list.files(dir)
 
-files<-list.files()
+#Bind all files in above path using read.table - Need to specify skip, header, etc. 
+if (length(PicarroPath)>0){
+  PicarroFull<-do.call("rbind", lapply(paste(PicarroPath, sep=""), read.table, sep="," ,skip=0,  header = TRUE, fill=TRUE)) 
+  
+  PicarroFull$DateTime_UTC<-as.POSIXct(paste(PicarroFull$DATE, floor((PicarroFull$TIME*24)), PicarroFull$min, PicarroFull$sec, sep=" "), format="%Y-%m-%d %H %M %S", tz="UTC")
+  PicarroFull<-PicarroFull[order(PicarroFull$DateTime_UTC),]
+  
+  PicarroFull=PicarroFull[!duplicated(PicarroFull[,"DateTime_UTC"]),]
 
-pic1<-readMat(files[1])
+  PicarroFull$DateTime_UTC<-(PicarroFull$DateTime_UTC+Picarro_Time_Offset[1])
+  
+  Picarrovars <- c(68, 26:45)
+  PicarroFull <- PicarroFull[,Picarrovars]
 
-setwd("..")
-setwd("csv")
+}
 
-files<-list.files()
-
-pic1<-read.table(files[2], header=T, sep=",", stringsAsFactors = F)
-head(pic1[,1:5])
-
-pic1$DateTime<-as.POSIXct(paste(pic1$DATE, floor((pic1$TIME*24)), pic1$min, pic1$sec, sep=" "), format="%Y-%m-%d %H %M %S", tz="UTC")
-
-head(pic1$DateTime)
-pic1<-pic1[order(pic1$DateTime),]
-
-plot(pic1$DateTime, pic1$HR_12CH4_dry)
 
 
