@@ -8,7 +8,7 @@ rm(list=ls(all=TRUE)) #clear the environment
 # Added a loop function to do this for all 6 ColumbiaRiver Days. Remove loop if wanting to run a single day.
 # ==================================================
 
-FLAME_Data_Directory<-"Dropbox/FLAME_ColumbiaRiver/Data/2016-07-12_ColumbiaRiver_Day1"
+FLAME_Data_Directory<-"Dropbox/FLAME_ColumbiaRiver/Data"
 
 #Enter Picarro time offset in seconds
 Picarro_Time_Offset<-15
@@ -80,26 +80,25 @@ setwd("..")
 setwd(paste(getwd(), FLAME_Data_Directory, sep=""))
 
 # ===========================================================
-# Start Open UMR Loop Code
+# Start Open CR Loop Code
 # Loop code, here and an after flame_engage function
 # Code will loop through all 13 UMR files and perform {flame engage}
-# starting directory - setwd("C:/Users/Luke/Dropbox/FLAME")
+# starting directory - setwd("E:/Dropbox/FLAME_ColumbiaRiver/Data")
 # ===========================================================
 
-# for (days in 1:13){
-#   if (days<10){
-#     FLAMEsubdirectory<-(paste("/Data/2015-08-0", days, "_UMR_Day", days, sep=""))}
-#   if (days>=10){
-#     FLAMEsubdirectory<-(paste("/Data/2015-08-", days, "_UMR_Day", days, sep=""))}  
-#   
-#   setwd("..")
-#   setwd("..")
-#   setwd(paste(getwd(), FLAMEsubdirectory, sep=""))
+CR_files<-list.files()
+CR_files<-CR_files[which(CR_files!="ColumbiaRiver2016_AllDays")]
+CR_files[1:2]
 
+days<-CR_files[1]
+for (days in CR_files){
+    FLAMEsubdirectory<-(days)
+    setwd(paste(getwd(), FLAMEsubdirectory, sep="/"))
+    
 # ===========================================================
-# End Open UMR All Days - Loop Code above
+# End Open CR Loop Code
 # ===========================================================
-  
+
 # read in a metadata file 
 # indicates the date (YYYY-MM-DD !!!), site, instruments, flame intervals, and water samples
 MetaPath <- list.files(path = paste(getwd(), "/meta", sep=""))
@@ -107,7 +106,7 @@ meta<-do.call("rbind", lapply(paste("meta/", MetaPath, sep=""), read.table, sep=
 Date<-as.Date(meta$Date[1], format="%Y-%m-%d")
 Site<-as.character(meta$Site[1])
 
-
+# grab samples and atm data if present
 if (meta$number_of_samples[1]!=0){
 SamplesPath <- list.files(path = paste(getwd(), "/samples", sep=""))
 Samples<-do.call("rbind", lapply(paste("samples/", SamplesPath, sep=""), read.table, sep="," ,skip=0,  header = TRUE, fill=TRUE))}
@@ -137,19 +136,16 @@ if (meta$FLAME_Unit[1]=="2016.02"){
 if (meta$FLAME_Unit[1]=="2016.03"){
   taus<-taus2016.03}
 
-
-# ===========================================================
 # do all 'dem bad things to the FLAMe data
-# ===========================================================
-
 flame_engage_all_maps(meta)
 
 # ===========================================================
 # Start close UMR loop code - see above
 # ===========================================================
 
-# print(FLAMEsubdirectory)
-# }
+print(FLAMEsubdirectory)
+setwd("..")
+}
   
 # ===========================================================
 # End close loop code
